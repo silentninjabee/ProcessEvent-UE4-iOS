@@ -88,7 +88,7 @@ void* FunctionAddress = reinterpret_cast<void*>(BaseAddr + 0x1044e9650);
 
 void* Params = nullptr;
 
-if(bProcessEvent(MyController, &FunctionAddress, &Params))
+if(bProcessEvent(ShooterPlayerController, &FunctionAddress, &Params))
 {
     // Success
 }
