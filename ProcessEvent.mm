@@ -23,13 +23,13 @@ static void ProcessEvent(long Object, wchar_t* FunctionName, void* params){
         long FuncFName;
         
         //Construct FName
-        reinterpret_cast<void(__fastcall*)(long, wchar_t*, int)>(FNameFunction)((long)&FuncFName, FunctionName, 1);
+        reinterpret_cast<void(*)(long, wchar_t*, int)>(FNameFunction)((long)&FuncFName, FunctionName, 1);
 
         //Find Function
         long FunctionAdress = reinterpret_cast<long(__fastcall*)(long, long)>(FindFunctionCheckedFunction)(Object, FuncFName);
 
         //Process Event
-        reinterpret_cast<void(__fastcall*)(long, long, long)>(ProcessEventFunction)(Object, FunctionAdress, (long)params);
+        reinterpret_cast<void(*)(long, long, long)>(ProcessEventFunction)(Object, FunctionAdress, (long)params);
     }
 
     return;
@@ -83,7 +83,7 @@ void Triggerbot{
 
     if(CheckPointsSameLine.returnVal){
 
-        long Controller = PointerChain -> Controller;
+        long Controller = UWorld->PointerChain->aController;
         long Weapon = PointerChain -> Weapon;
         FireWeaponParams fireInput;
 
