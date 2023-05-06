@@ -68,7 +68,7 @@ static bool bProcessEvent(long Object, void* FunctionAddress, void* Params) {
 Function Name: DungeonAccess();
 Class: uWorld.ShooterPlayerController;
 Params & Returns: 0, 0;
-Offset Address: 0x1044e9650;
+Offset Address: 0x44e9650;
 */
 
 
@@ -86,13 +86,13 @@ ProcessEvent(ShooterPlayerController, L"DungeonAccess", &Params);
 long BaseAddr = (long)_dyld_get_image_header(0);
 
 // the address of the function, cast to a void* 
-void* FunctionAddress = reinterpret_cast<void*>(BaseAddr + 0x1044e9650);
+void* FunctionAddress = reinterpret_cast<void*>(BaseAddr + 0x44e9650);
 
 void* Params = nullptr;
 
 if(bProcessEvent(ShooterPlayerController, &FunctionAddress, &Params))
 {
-    // Success
+    // Success, makes it easy to link process event calls 
 }
 
 
