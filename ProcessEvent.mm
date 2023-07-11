@@ -70,8 +70,7 @@ Class: uWorld.ShooterPlayerController;
 Params & Returns: 0, 0;
 Offset Address: 0x44e9650;
 */
-
-
+// ----------------------- Example 1
 // Class address of the function DungeonAccess
 long ShooterPlayerController = 0x12345678;
 
@@ -80,24 +79,26 @@ void* Params = nullptr;
 
 ProcessEvent(ShooterPlayerController, L"DungeonAccess", &Params);
 
+// ----------------------- Example 2
 /*      using the function address to call, with a boolean return    */
 
-// BaseAddr needs to be defined within scope
+// Base address needs to be defined within the scope
 long BaseAddr = (long)_dyld_get_image_header(0);
 
-// the address of the function, cast to a void* 
+//We use the address of the function and cast to a void* 
 void* FunctionAddress = reinterpret_cast<void*>(BaseAddr + 0x44e9650);
 
-void* Params = nullptr;
+void* Params = nullptr; // is the same as assigning the value 0 so we can use that instead
 
-if(bProcessEvent(ShooterPlayerController, &FunctionAddress, &Params))
+if(bProcessEvent(ShooterPlayerController, &FunctionAddress, 0))
 {
-    // Success, makes it easy to link process event calls 
+    // Success. 
+    // Now this makes it easy to link process event calls and chain together complex hacks
 }
 
 
 /* 
-
+Extra:
 How to define structs for function parameters and return values 
 
 */
@@ -105,12 +106,16 @@ How to define structs for function parameters and return values
 
 /*
 - Example use case: 
-Pretend there is a function called CheckPointsSameLine(isnt a real function)
-which is in class AFakeFunctions, has a reutrn type of bool,  a vector, a rotator, and another vector as an argument
+Pretend there is a function called CheckPointsSameLine(isn't a real function)
+which is in class AFakeFunctions, has a return type of bool,  a vector, a rotator, and another vector as an argument
 bool AFakeFunctions::CheckPointsSameLine(Vector StartLocation, Rotator AimRotation, Vector TargetLocation);
-and the goal is to make a triggerbot and there is a shoot function 
-void WeaponClass:FireWeapon(long Controller, long Weapon);
-to call this you would do */
+and the goal is to make a trigger bot and there is a shoot function 
+void WeaponClass::FireWeapon(long Controller, long Weapon);
+
+there is also a force field shield defense our player has that lasts 15 seconds and takes no params
+void WeaponClass::ServerUseMagicShield();
+
+to make a linked set of events, that auto-fires and uses unlimited shields, you would do */
 
 //Note: While CheckPointsSameLine is not a real function, a similar thing can be done using LineTrace functions
 struct Vector{
@@ -124,35 +129,54 @@ struct Rotation{
     float roll;
 };
 struct CheckPointsSameLineParams{
-    Vector StartLocation;
-    Rotator AimRotation;
-    Vector TargetLocation;
+    struct Vector StartLocation;
+    struct Rotator AimRotation;
+    struct Vector TargetLocation;
     bool returnVal;
 };
-struct FireWeaponParams{ //since the FireWeapon function is void, you dont need a return
+struct FireWeaponParams{ //since the FireWeapon function is void, you won't need a return
     long Controller;
     long Weapon;
 };
 
-void Triggerbot{
-    long AFakeFunctionsClass = Gworld->Something->Something->FAkeFunctions;
+//function time ....
+void almostGodModeTriggerBot() {
+//gather address values needed
+long CheckPointClass = Gworld->Something->Something->FAkeFunctionClass;
+void* CheckPointsSameLineaddr = reinterpret_cast<void*>(BaseAddr + 0x23944536);
+long Controller = UWorld->PointerChain->aController;
+long Weapon = PointerChain -> Weapon;
 
-    CheckPointsSameLine Input;
-    CheckPointsSameLine.StartLocation = MyLocation;
-    CheckPointsSameLine.AimRotation = MyRotation;
-    CheckPointsSameLine.TargetLocation = EnemyLocation;
+// Get my location and rotation
+Vector MyLocation = Read<Vector>(myRelativeLocationaddressexample);
+Rotator MyRotation = CalculatedAimAngle;
 
-    ProcessEvent(AFakeFunctionsClass, L"CheckPointsSameLine", &CheckPointsSameLine);
+// Declare an instance of the params struct for the line trace function
+CheckPointsSameLineParams NewParams;
 
-    if(CheckPointsSameLine.returnVal){
+// Fill in our struct
+NewParams.StartLocation = MyLocation;
+NewParams.AimRotation = MyRotation;
+NewParams.TargetLocation = EnemyLocation;
 
-        long Controller = UWorld->PointerChain->aController;
-        long Weapon = PointerChain -> Weapon;
-        FireWeaponParams fireInput;
-
-        fireInput.Controller = Controller;
-        fireInput.Weapon = Weapon;
-
-        ProcessEvent(Weapon, L"FireWeapon", &fireInput);
-    }
+    // Error check the line trace process event call
+    if(bProcessEvent(CheckPointClass, CheckPointsSameLineaddr, &NewParams)){
+        //Then check the results of the line trace and fire if true
+        if(NewParams.returnVal == true) {
+                
+            FireWeaponParams fireInput;
+            fireInput.Controller = Controller;
+            fireInput.Weapon = Weapon;
+            
+            ProcessEvent(Weapon, L"FireWeapon", &fireInput);
+        } else {
+            //When not firing then abuse server call for a magic shield
+            ProcessEvent(Weapon, L"ServerUseMagicShield", 0);
+        }
+    }   
 }
+
+// Now call inside a loop
+void almostGodModeTriggerBot();
+
+// fin
